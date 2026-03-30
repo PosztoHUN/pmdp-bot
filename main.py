@@ -9,7 +9,7 @@ from datetime import datetime
 # =======================
 # BEÁLLÍTÁSOK
 # =======================
-TOKEN = "MTQ4ODE0NDQ2NTA2NjQ2MzI3Mw.GekOPn.KQNNcrx2L-RTOHG5uriL6qtoHNAi1sBKwk1UaY"
+TOKEN = os.getenv("TOKEN")
 
 API_URL = (
     "https://jizdnirady.pmdp.cz/signalr/reconnect?transport=serverSentEvents&"
