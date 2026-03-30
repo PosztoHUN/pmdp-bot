@@ -326,7 +326,7 @@ async def pmdpvillamos(ctx):
         # 🔁 retry
         for attempt in range(3):
             try:
-                async with session.get(API_URL, timeout=aiohttp.ClientTimeout(total=10)) as r:
+                async with session.get(API_URL, timeout=aiohttp.ClientTimeout(total=60)) as r:
                     if r.status != 200:
                         return await ctx.send(f"❌ Hiba: HTTP {r.status}")
 
