@@ -1,5 +1,5 @@
 requests
+discord.py
 python-dotenv
-discord.py==2.3.2
-aiohttp==3.9.5
-ftfy==6.1.1
+aiohttp
+ftfy
