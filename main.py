@@ -734,7 +734,6 @@ async def pmdptroli(ctx):
         
 @bot.command()
 async def pmdpirisbus(ctx):
-    import ftfy
     import asyncio
     import aiohttp
     import json
@@ -742,111 +741,104 @@ async def pmdpirisbus(ctx):
 
     active = {}
 
-    async with aiohttp.ClientSession() as session:
-        text = None
+    try:
+        timeout = aiohttp.ClientTimeout(sock_read=10, total=30)
 
-        # 🔁 retry
-        for attempt in range(3):
-            try:
-                async with session.get(API_URL, timeout=aiohttp.ClientTimeout(total=10)) as r:
-                    if r.status != 200:
-                        return await ctx.send(f"❌ Hiba az API lekéréskor: HTTP {r.status}")
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(API_URL) as r:
 
-                    text = await r.text()
-                    break
+                if r.status != 200:
+                    return await ctx.send(f"❌ Hiba: HTTP {r.status}")
 
-            except asyncio.TimeoutError:
-                if attempt == 2:
-                    return await ctx.send("❌ API timeout")
-                await asyncio.sleep(1)
+                count = 0  # 🔥 stream limit
 
-            except aiohttp.ClientError as e:
-                if attempt == 2:
-                    return await ctx.send(f"❌ Hálózati hiba: {e}")
-                await asyncio.sleep(1)
+                async for raw_line in r.content:
+                    try:
+                        line = raw_line.decode("utf-8").strip()
+                    except:
+                        continue
 
-            except Exception as e:
-                if attempt == 2:
-                    return await ctx.send(f"❌ Ismeretlen hiba: {e}")
-                await asyncio.sleep(1)
+                    if not line.startswith("data: {"):
+                        continue
 
-        if not text:
-            return await ctx.send("❌ Az API nem adott választ.")
+                    try:
+                        data = json.loads(line[6:])
+                    except:
+                        continue
 
-        # 🔴 feldolgozás
-        for line in text.splitlines():
-            if not line.startswith("data: {"):
-                continue
-            try:
-                data = json.loads(line[6:])
-            except Exception:
-                continue
+                    for hub in data.get("M", []):
+                        for batch in hub.get("A", []):
+                            for vehicle in batch:
 
-            for hub in data.get("M", []):
-                for batch in hub.get("A", []):
-                    for vehicle in batch:
-                        vnum = vehicle.get("VehicleNumber")
-                        if not vnum or not is_troli(str(vnum)):
-                            continue
+                                vnum = vehicle.get("VehicleNumber")
+                                if not vnum or not is_troli(str(vnum)):
+                                    continue
 
-                        reg_str = str(vnum)
+                                reg_str = str(vnum)
 
-                        # csak Irisbus trolik
-                        if not (is_24tr(reg_str) or is_25tr(reg_str)):
-                            continue
+                                # ✅ CSAK IRISBUS
+                                if not (is_24tr(reg_str) or is_25tr(reg_str)):
+                                    continue
 
-                        real_reg = reg_str[1:]  # első karakter levágása
+                                real_reg = reg_str[1:]
 
-                        # típus
-                        if is_24tr(reg_str):
-                            vehicle_type = "Irisbus Citelis Škoda 24Tr"
-                        elif is_25tr(reg_str):
-                            vehicle_type = "Irisbus Citelis Škoda 25Tr"
+                                if is_24tr(reg_str):
+                                    vehicle_type = "Irisbus Citelis Škoda 24Tr"
+                                else:
+                                    vehicle_type = "Irisbus Citelis Škoda 25Tr"
 
-                        line_info = vehicle.get("Line", {})
-                        line_name = str(line_info.get("Name", "Ismeretlen"))
-                        internal_number = str(line_info.get("Number", "Ismeretlen"))
-                        start_name = ftfy.fix_text(str(vehicle.get("StartName") or "Ismeretlen"))
-                        dest_name = ftfy.fix_text(str(vehicle.get("DestinationName") or "Ismeretlen"))
-                        last_stop = ftfy.fix_text(str(vehicle.get("LastStopName") or "Ismeretlen"))
-                        next_stop = ftfy.fix_text(str(vehicle.get("NextStopName") or "Ismeretlen"))
-                        delay = vehicle.get("DelayMin", 0)
+                                line_info = vehicle.get("Line", {})
+                                line_name = str(line_info.get("Name", "Ismeretlen"))
 
-                        active[real_reg] = {
-                            "line": line_name,
-                            "internal": internal_number,
-                            "start": start_name,
-                            "dest": dest_name,
-                            "last": last_stop,
-                            "next": next_stop,
-                            "delay": delay,
-                            "type": vehicle_type
-                        }
+                                dest_name = str(vehicle.get("DestinationName") or "Ismeretlen")
+                                next_stop = str(vehicle.get("NextStopName") or "Ismeretlen")
+                                delay = vehicle.get("DelayMin", 0)
+
+                                active[real_reg] = {
+                                    "line": line_name,
+                                    "dest": dest_name,
+                                    "next": next_stop,
+                                    "delay": delay,
+                                    "type": vehicle_type
+                                }
+
+                    count += 1
+                    if count >= 50:  # 🔥 ne fusson végtelenbe
+                        break
+
+    except asyncio.TimeoutError:
+        return await ctx.send("❌ API timeout (stream)")
+
+    except Exception as e:
+        return await ctx.send(f"❌ Hiba: {e}")
 
     if not active:
-        return await ctx.send("🚫 Nincs aktív Irisbus trolibusz.")
+        return await ctx.send("🚫 Nincs aktív Irisbus troli (vagy nem jött adat).")
 
-    # ⬇️ EMBED RÉSZHEZ NEM NYÚLTAM
+    # 📦 EMBED
     embeds = []
     embed = discord.Embed(title="🚎 Aktív Irisbus trolibuszok", color=0x006400)
-    field_count = 0
-    MAX_FIELDS = 20
+
+    char_count = 0
+    FIELD_LIMIT = 25
+    CHAR_LIMIT = 5500
 
     for reg, info in sorted(active.items(), key=lambda x: int(x[0])):
         value_text = (
             f"Vonal: {info['line']}\n"
             f"Cél: {info['dest']}\n"
-            f"Következő megálló: {info['next']}\n"
+            f"Következő: {info['next']}\n"
             f"Késés: {info['delay']} perc\n"
             f"Típus: {info['type']}"
         )
-        embed.add_field(name=str(reg), value=value_text, inline=False)
-        field_count += 1
 
-        if field_count >= MAX_FIELDS:
+        if len(embed.fields) >= FIELD_LIMIT or char_count + len(value_text) > CHAR_LIMIT:
             embeds.append(embed)
             embed = discord.Embed(title="🚎 Aktív Irisbus trolibuszok (folytatás)", color=0x006400)
-            field_count = 0
+            char_count = 0
+
+        embed.add_field(name=str(reg), value=value_text, inline=False)
+        char_count += len(value_text)
 
     if embed.fields:
         embeds.append(embed)
