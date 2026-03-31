@@ -12,10 +12,10 @@ from datetime import datetime
 TOKEN = os.getenv("TOKEN")
 
 API_URL = (
-    "https://jizdnirady.pmdp.cz/signalr/connect?transport=serverSentEvents&clientProtocol=2.1&"
-    "messageId=d-ADF24C49-B%2C175%7CEo%2C18%7CEp%2C1&clientProtocol=2.1&"
-    "connectionToken=IpN05fbwsjNZfLZsFvlK13nn9JPhRGeA%2BwXPgnKVMjod5lRNxLQ%2BdxrHgbVSxUN18mDyvd0sdognlnUXE2CJ%2FQQbjytRLAfqUJZ%2FUPLHGDNphmaq0KbX9OK4RSQAYyh4&"
-    "connectionData=%5B%7B"name"%3A"provozhub"%7D%5D&tid=8"
+    'https://jizdnirady.pmdp.cz/signalr/connect?transport=serverSentEvents&clientProtocol=2.1&'
+    'messageId=d-ADF24C49-B%2C175%7CEo%2C18%7CEp%2C1&clientProtocol=2.1&'
+    'connectionToken=IpN05fbwsjNZfLZsFvlK13nn9JPhRGeA%2BwXPgnKVMjod5lRNxLQ%2BdxrHgbVSxUN18mDyvd0sdognlnUXE2CJ%2FQQbjytRLAfqUJZ%2FUPLHGDNphmaq0KbX9OK4RSQAYyh4&'
+    'connectionData=%5B%7B"name"%3A"provozhub"%7D%5D&tid=8'
 )
 
 intents = discord.Intents.default()
