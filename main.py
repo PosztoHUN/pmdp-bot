@@ -12,10 +12,10 @@ from datetime import datetime
 TOKEN = os.getenv("TOKEN")
 
 API_URL = (
-    "https://jizdnirady.pmdp.cz/signalr/reconnect?transport=serverSentEvents&"
+    "https://jizdnirady.pmdp.cz/signalr/connect?transport=serverSentEvents&clientProtocol=2.1&connectionToken=IpN05fbwsjNZfLZsFvlK13nn9JPhRGeA%2BwXPgnKVMjod5lRNxLQ%2BdxrHgbVSxUN18mDyvd0sdognlnUXE2CJ%2FQQbjytRLAfqUJZ%2FUPLHGDNphmaq0KbX9OK4RSQAYyh4&connectionData=%5B%7B"name"%3A"provozhub"%7D%5D&tid=8"
     "messageId=d-ADF24C49-B%2C175%7CEo%2C18%7CEp%2C1&clientProtocol=2.1&"
-    "connectionToken=RHyjL3J%2BIqbBzR6Qlq4fAhJGSC3CkLpcHN9CT3fgzMy%2FRSNfM%2B7fjqNDnsQUk0LPJdvXYYGd2mK36YXpcv078pVCl8zIf6W52MLFQqc3HdEJVKuner7oT4yiNmv9FDFx&"
-    "connectionData=%5B%7B%22name%22%3A%22provozhub%22%7D%5D&tid=6"
+    "connectionToken=IpN05fbwsjNZfLZsFvlK13nn9JPhRGeA%2BwXPgnKVMjod5lRNxLQ%2BdxrHgbVSxUN18mDyvd0sdognlnUXE2CJ%2FQQbjytRLAfqUJZ%2FUPLHGDNphmaq0KbX9OK4RSQAYyh4&&"
+    "connectionData=%5B%7B"name"%3A"provozhub"%7D%5D&tid=8"
 )
 
 intents = discord.Intents.default()
